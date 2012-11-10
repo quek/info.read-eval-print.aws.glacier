@@ -3,7 +3,7 @@
 
 (in-package :info.read-eval-print.aws.glacier.test)
 
-(setf *account-id* "99999999999")
+(setf *account-id* "-")
 (setf *access-key* "AKIDEXAMPLE")
 (setf *secret-key* "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY")
 (setf *region* "us-east-1")

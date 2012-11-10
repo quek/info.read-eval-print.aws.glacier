@@ -33,3 +33,7 @@
                                      ("x-amz-sha256-tree-hash" . ,tree-hash)
                                      ("x-amz-content-sha256" . ,content-hash))
                           :content buffer))))
+
+(defun delete-archive (vault-name archive-id)
+  (request-to-glacier :delete (format nil "vaults/~a/archives/~a"
+                                      vault-name archive-id)))
