@@ -5,4 +5,4 @@
 (defparameter *secret-key* "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY" "secret key")
 (defparameter *region* "us-east-1" "region (endpoint)")
 
-(defparameter *part-size* (* 1024 1024 1) "Part size of multipart upload")
+(defparameter *part-size* (* 1024 1024 100) "Part size of multipart upload")
