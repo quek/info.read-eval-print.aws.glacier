@@ -11,5 +11,10 @@
            #:describe-vault
            #:list-vaults
            #:upload-archive-multipart
-           #:upload-archive))
-
+           #:upload-archive
+           #:delete-archive
+           #:list-jobs
+           #:initiate-job
+           #:describe-job
+           #:get-job-output
+           #:get-job-output-stream))
