@@ -13,6 +13,8 @@
 (defun list-vaults ()
   (request-to-glacier :get "vaults"))
 
+;; TODO describe のデフォルト値にファイル名とか日時とかサイズとか入れといた方がいい気がする。
+;; :description :default でそんなのが入る感じで。
 (defun upload-archive-multipart (vault-name upload-file &key description (part-size *part-size*))
   (multiple-value-bind (multipart-upload-id part-size)
       (initiate-multipart-upload vault-name description part-size )
@@ -21,6 +23,7 @@
         (upload-part vault-name multipart-upload-id upload-file part-size)
       (complete-multipart-upload vault-name multipart-upload-id hashes archive-size))))
 
+;; TODO describe のデフォルト値にファイル名とか日時とかサイズとか入れといた方がいい気がする。
 (defun upload-archive (vault-name upload-file &key description)
   (with-open-file (in upload-file :element-type ' (unsigned-byte 8))
     (let* ((file-length (file-length in))
@@ -86,3 +89,7 @@
 (defun get-job-output-stream (vault-name job-id)
   (request-to-glacier :get (format nil "vaults/~a/jobs/~a/output" vault-name job-id)
                       :want-stream t))
+
+(defmacro with-job-output-stream ((stream vault-name job-id) &body body)
+  `(with-open-stream (,stream (get-job-output-stream ,vault-name ,job-id))
+     ,@body))

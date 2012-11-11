@@ -17,4 +17,5 @@
            #:initiate-job
            #:describe-job
            #:get-job-output
-           #:get-job-output-stream))
+           #:get-job-output-stream
+           #:with-job-output-stream))
