@@ -37,3 +37,21 @@
 (defun delete-archive (vault-name archive-id)
   (request-to-glacier :delete (format nil "vaults/~a/archives/~a"
                                       vault-name archive-id)))
+
+
+(defun list-jobs (vault-name &key (completed nil completed-supplyed-p)
+                               limit
+                               marker
+                               status-code)
+  "status-code: One of the values InProgress, Succeeded, or Failed."
+  (request-to-glacier :get (format nil "vaults/~a/jobs" vault-name)
+                       :parameters `(,@(when completed-supplyed-p
+                                         `(("completed" . ,(if completed
+                                                               "true"
+                                                               "false"))))
+                                     ,@(when limit
+                                         `(("limit" . ,(princ-to-string limit))))
+                                     ,@(when marker
+                                         `(("marker" . ,marker)))
+                                     ,@(when status-code
+                                         `(("statuscode" . ,status-code))))))

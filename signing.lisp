@@ -25,11 +25,10 @@
   (with-output-to-string (out)
     (format-line out "~a" method)
     (format-line out "~a" path)
-    (loop for (k . v) in (sort (copy-seq parameters) #'string<= :key #'car)
-          do (format out "~a=~a"
-                     (percent-encoding:encode k :encoding :utf-8)
-                     (percent-encoding:encode v :encoding :utf-8))
-          finally (format-line out ""))
+    (format-line out "~{~a=~a~^&~}"
+                 (loop for (k . v) in (sort (copy-seq parameters) #'string<= :key #'car)
+                       collect (percent-encoding:encode k :encoding :utf-8)
+                       collect (percent-encoding:encode v :encoding :utf-8)))
     (format-line out "~{~(~a~)~^;~}"
                  (loop for (k . v) in (sort (copy-seq headers) #'string<= :key #'car)
                        do (format-line out "~(~a~):~a" k v)
