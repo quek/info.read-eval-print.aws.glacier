@@ -45,13 +45,44 @@
                                status-code)
   "status-code: One of the values InProgress, Succeeded, or Failed."
   (request-to-glacier :get (format nil "vaults/~a/jobs" vault-name)
-                       :parameters `(,@(when completed-supplyed-p
-                                         `(("completed" . ,(if completed
-                                                               "true"
-                                                               "false"))))
-                                     ,@(when limit
-                                         `(("limit" . ,(princ-to-string limit))))
-                                     ,@(when marker
-                                         `(("marker" . ,marker)))
-                                     ,@(when status-code
-                                         `(("statuscode" . ,status-code))))))
+                      :parameters `(,@(when completed-supplyed-p
+                                        `(("completed" . ,(if completed
+                                                              "true"
+                                                              "false"))))
+                                    ,@(when limit
+                                        `(("limit" . ,(princ-to-string limit))))
+                                    ,@(when marker
+                                        `(("marker" . ,marker)))
+                                    ,@(when status-code
+                                        `(("statuscode" . ,status-code))))))
+
+(defun initiate-job (vault-name &key type archive-id description format sns-topic)
+  (check-type type (member nil :archive-retrieval :inventory-retrieval))
+  (check-type format (member nil :csv :json))
+  (let ((content (make-hash-table :test #'equal)))
+    (setf (gethash "Type" content) (string-downcase type))
+    (when archive-id
+      (setf (gethash "ArchiveId" content) archive-id))
+    (when description
+      (setf (gethash "Description" content) description))
+    (when format
+      (setf (gethash "Format" content) (symbol-name format)))
+    (when sns-topic
+      (setf (gethash "SNSTopic" content) sns-topic))
+    (multiple-value-bind (body status header)
+        (request-to-glacier :post (format nil "vaults/~a/jobs" vault-name)
+                            :content (babel:string-to-octets (json:encode-json-to-string content)
+                                                             :encoding :utf-8))
+      (if (= status 202)                ;Accepted
+          (cdr (assoc :x-amz-job-id header))
+          (error (list body status header))))))
+
+(defun describe-job (vault-name job-id)
+  (request-to-glacier :get (format nil "vaults/~a/jobs/~a" vault-name job-id)))
+
+(defun get-job-output (vault-name job-id)
+  (request-to-glacier :get (format nil "vaults/~a/jobs/~a/output" vault-name job-id)))
+
+(defun get-job-output-stream (vault-name job-id)
+  (request-to-glacier :get (format nil "vaults/~a/jobs/~a/output" vault-name job-id)
+                      :want-stream t))
