@@ -16,4 +16,4 @@
 (defparameter *region* "us-east-1" "region (endpoint)")
 
 
-(defparameter *part-size* (* 1024 1024 128) "Part size of multipart upload")
+(defparameter *part-size* (* 1024 1024 32) "Part size of multipart upload")
