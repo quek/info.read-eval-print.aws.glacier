@@ -8,10 +8,11 @@
                           :headers `(,@(when description
                                          `(("x-amz-archive-description" . ,description)))
                                      ("x-amz-part-size" . ,part-size)))
-    (declare (ignore body status))
-    (values (cdr (assoc :x-amz-multipart-upload-id headers))
-            part-size
-            (cdr (assoc :location headers)))))
+    (if (= status 201)
+        (values (cdr (assoc :x-amz-multipart-upload-id headers))
+                part-size
+                (cdr (assoc :location headers)))
+        (error (list body status headers)))))
 
 (defun upload-part (vault-name multipart-upload-id file part-size)
   (let ((buffer (make-octet-vector part-size)))
