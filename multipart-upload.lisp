@@ -44,17 +44,28 @@
   (request-to-glacier :get (format nil "vaults/~a/multipart-uploads/~a" vault-name multipart-upload-id)))
 
 (defun upload-one-part (vault-name multipart-upload-id content hash range-from)
-  (print
-   (multiple-value-list
-    (request-to-glacier
-     :put (format nil "vaults/~a/multipart-uploads/~a" vault-name multipart-upload-id)
-     :headers `(("Content-Range" . ,(format nil "bytes ~d-~d/*"
-                                            range-from (1- (+ range-from (length content)))))
-                ("Content-Type" . "application/octet-stream")
-                ("x-amz-sha256-tree-hash" . ,(base-16 hash))
-                ("x-amz-content-sha256" . ,(base-16 (ironclad:digest-sequence :sha256 content))))
-     :content content
-     :content-type nil))))
+  (let ((error nil)
+        (url (format nil "vaults/~a/multipart-uploads/~a" vault-name multipart-upload-id))
+        (headers `(("Content-Range" . ,(format nil "bytes ~d-~d/*"
+                                               range-from (1- (+ range-from (length content)))))
+                   ("Content-Type" . "application/octet-stream")
+                   ("x-amz-sha256-tree-hash" . ,(base-16 hash))
+                   ("x-amz-content-sha256" . ,(base-16 (ironclad:digest-sequence :sha256 content))))))
+    (loop repeat 10
+          do (handler-case
+                 (multiple-value-bind (body status header)
+                     (request-to-glacier
+                      :put url
+                      :headers headers
+                      :content content
+                      :content-type nil)
+                   (if (= 204 status)
+                       (return-from upload-one-part t)
+                       (error (list body status header))))
+               (error (e)
+                 (setf error e )
+                 (print e))))
+    (error error)))
 
 (defun tree-hash (content)
   (shrink-hashes (loop for start from 0 by +hash-block-size+
