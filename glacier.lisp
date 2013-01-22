@@ -13,12 +13,13 @@
 (defun list-vaults ()
   (request-to-glacier :get "vaults"))
 
-(defun upload-archive-multipart (vault-name upload-file &key description (part-size *part-size*))
+(defun upload-archive-multipart (vault-name upload-file
+                                 &key description (part-size *part-size*) (sleep 0))
   (multiple-value-bind (multipart-upload-id part-size)
       (initiate-multipart-upload vault-name description part-size )
     (print (list multipart-upload-id part-size))
     (multiple-value-bind  (hashes archive-size)
-        (upload-part vault-name multipart-upload-id upload-file part-size)
+        (upload-part vault-name multipart-upload-id upload-file part-size :sleep sleep)
       (complete-multipart-upload vault-name multipart-upload-id hashes archive-size))))
 
 (defun upload-archive (vault-name upload-file &key description)

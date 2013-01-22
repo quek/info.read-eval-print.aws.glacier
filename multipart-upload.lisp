@@ -14,7 +14,7 @@
                 (cdr (assoc :location headers)))
         (error (list body status headers)))))
 
-(defun upload-part (vault-name multipart-upload-id file part-size)
+(defun upload-part (vault-name multipart-upload-id file part-size &key (sleep 0))
   (let ((buffer (make-octet-vector part-size)))
     (with-open-file (in file :element-type '(unsigned-byte 8))
       (let* ((file-length (file-length in))
@@ -29,6 +29,7 @@
                                           content
                                           hash
                                           i)
+                         (sleep sleep)
                       collect hash)
                 file-length)))))
 
